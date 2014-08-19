@@ -45,7 +45,7 @@ namespace mongo
   void MongoClient::_msg_recv(reply_pre & intro, std::shared_ptr<unsigned char> & docs)
   {
     zmqcpp::Message reply;
-    int consumed, goal, size;
+    int consumed, goal;
     m_sock >> reply; // grab and kill the id
     m_sock >> reply;
     memcpy(&(intro.head), (char*)reply.frames().back()->c_str(), HEAD_SIZE);
@@ -109,8 +109,6 @@ namespace mongo
     bson::Document qd;
     zmq::message_t reply;
     reply_pre intro;
-    int num_returned;
-    int docsize, headsize;
     bson::Document result;
     std::shared_ptr<unsigned char> data;
     
@@ -144,8 +142,6 @@ namespace mongo
     bson::Document qd;
     zmq::message_t reply;
     reply_pre intro;
-    int num_returned;
-    int docsize, headsize;
     bson::Document result;
     std::shared_ptr<unsigned char> data;
     

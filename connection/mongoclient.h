@@ -79,7 +79,7 @@ namespace mongo
        * \pre The context should be passed if it has been created for other ZMQ sockets
        * \post The client is constructed using the context specified.  If *ctx == nullptr, creates a new zmq context
        */
-      MongoClient():m_sock(ZMQ_STREAM) {}
+      MongoClient():m_sock(ZMQ_STREAM), m_id(), m_id_size(0) {}
       /*!
        * \brief Connection Constructors
        * \pre None
