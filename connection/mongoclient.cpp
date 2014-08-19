@@ -10,7 +10,8 @@
 #include <memory>
 #include <string>
 #include <sstream>
-#include <zmq.hpp>
+#include "../zmq/socket.h"
+#include "../zmq/messages/message.h"
 
 namespace mongo
 {
@@ -37,33 +38,31 @@ namespace mongo
   
   void MongoClient::_msg_send(std::string message)
   {
-    zmq::message_t send(message.size());
-    std::memcpy((void*)send.data(), message.c_str(), message.size());
-    m_sock.raw_sock().send(m_id, m_id_size, ZMQ_SNDMORE);
-    m_sock.raw_sock().send(send, ZMQ_SNDMORE);
+    zmqcpp::Message m(std::string(m_id, m_id_size));
+    m.add_frame(message);
+    m_sock.send(m, ZMQ_SNDMORE);
   }
   void MongoClient::_msg_recv(reply_pre & intro, std::shared_ptr<unsigned char> & docs)
   {
-    zmq::message_t id, reply;
+    zmqcpp::Message reply;
     int consumed, goal, size;
-    m_sock.raw_sock().recv(&id);
-    m_sock.raw_sock().recv(&reply);
-    memcpy(&(intro.head), (char*)reply.data(), HEAD_SIZE);
-    memcpy(&(intro.rFlags), (char*)reply.data() + HEAD_SIZE, sizeof(int));
-    memcpy(&(intro.curID), (char*)reply.data() + HEAD_SIZE + sizeof(int), sizeof(long));
-    memcpy(&(intro.start), (char*)reply.data() + HEAD_SIZE + sizeof(int) + sizeof(long), sizeof(int));
-    memcpy(&(intro.numRet), (char*)reply.data() + HEAD_SIZE + sizeof(int) + sizeof(long)  + sizeof(int), sizeof(int));
+    m_sock >> reply; // grab and kill the id
+    m_sock >> reply;
+    memcpy(&(intro.head), (char*)reply.frames().back()->c_str(), HEAD_SIZE);
+    memcpy(&(intro.rFlags), (char*)reply.frames().back()->c_str() + HEAD_SIZE, sizeof(int));
+    memcpy(&(intro.curID), (char*)reply.frames().back()->c_str() + HEAD_SIZE + sizeof(int), sizeof(long));
+    memcpy(&(intro.start), (char*)reply.frames().back()->c_str() + HEAD_SIZE + sizeof(int) + sizeof(long), sizeof(int));
+    memcpy(&(intro.numRet), (char*)reply.frames().back()->c_str() + HEAD_SIZE + sizeof(int) + sizeof(long)  + sizeof(int), sizeof(int));
     goal = intro.head.len - REPLYPRE_SIZE;
     docs = std::shared_ptr<unsigned char>(new unsigned char [intro.head.len - REPLYPRE_SIZE], []( unsigned char *p ) { delete[] p; });
-    memcpy(docs.get(), (char*)reply.data() + REPLYPRE_SIZE, reply.size() - REPLYPRE_SIZE);
-    consumed = reply.size() - REPLYPRE_SIZE;
+    memcpy(docs.get(), (char*)reply.frames().back()->c_str() + REPLYPRE_SIZE, reply.frames().back()->size() - REPLYPRE_SIZE);
+    consumed = reply.frames().back()->size() - REPLYPRE_SIZE;
     while (consumed < goal)
     {
-      zmq::message_t intid, intreply;
-      m_sock.raw_sock().recv(&intid);
-      m_sock.raw_sock().recv(&intreply);
-      memcpy(docs.get() + consumed, (char*)intreply.data(), std::min(static_cast<int>(intreply.size()), goal - consumed));
-      consumed += std::min(static_cast<int>(intreply.size()), goal - consumed);
+      m_sock >> reply;
+      m_sock >> reply;
+      memcpy(docs.get() + consumed, (char*)reply.frames().back()->c_str(), std::min(static_cast<int>(reply.frames().back()->size()), goal - consumed));
+      consumed += std::min(static_cast<int>(reply.frames().back()->size()), goal - consumed);
     }
     return;
   }
