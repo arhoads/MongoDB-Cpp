@@ -1,3 +1,6 @@
 [submodule "bson"]
 	path = bson
 	url = git@github.com:Lumate/FastBSON-Cpp.git
+[submodule "zmq"]
+	path = zmq
+	url = git@github.com:Lumate/EasyZMQ-Cpp.git

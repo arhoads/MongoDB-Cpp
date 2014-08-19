@@ -20,7 +20,7 @@ TEST_F(MongoDriverTest, InsertOne)
   c.insert(INSCOLL, {{"a", thing}});
   ASSERT_NE(0, c.findOne(INSCOLL, {{"a", thing}}).field_names().size());
 }
-
+/*
 TEST_F(MongoDriverTest, InsertOneNewConstructor)
 {
   int thing = 0;
@@ -29,5 +29,5 @@ TEST_F(MongoDriverTest, InsertOneNewConstructor)
     thing ++;
   c2.insert(INSCOLL, {{"a", thing}});
   ASSERT_NE(0, c.findOne(INSCOLL, {{"a", thing}}).field_names().size());
-}
+}*/
 
