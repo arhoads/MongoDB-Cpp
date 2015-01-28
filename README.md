@@ -1,7 +1,7 @@
 MongoDB-Cpp
 ===========
 
-A replacement for the mongo-cxx-driver that focuses on memory safety, speed, and ease of use. It uses the FastBSON library (https://github.com/Lumate/FastBSON-Cpp) to handle decoding and encoding BSON.
+A replacement for the mongo-cxx-driver that focuses on memory safety, speed, and ease of use. It uses the [FastBSON library](https://github.com/neloe/FastBSON-Cpp) to handle decoding and encoding BSON.
 
 ## Prerequisites
 This database driver requires the ZMQ libraries (and associated dependencies) and FastBSON. Build system requirements are CMake and a modern C++ compiler that is C++11 compliant.
